@@ -1,7 +1,9 @@
 package source;
 
 
-public class Task implements Comparable<Task>{
+import java.io.Serializable;
+
+public class Task implements Comparable<Task>,Serializable {
 
     private int id;
     private String description;
@@ -37,9 +39,9 @@ public class Task implements Comparable<Task>{
             if(comp2!=0)
                 return comp2;
         }
-        else if(expirationDate==null)
+        else if(expirationDate==null && o.expirationDate!=null)
             return -1;
-        else if(o.expirationDate==null)
+        else if(o.expirationDate==null && expirationDate!=null)
             return 1;
         return id-o.id;
     }

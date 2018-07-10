@@ -31,9 +31,8 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-              <MenuItem mnemonicParsing="false" text="Open" />
-                  <MenuItem mnemonicParsing="false" text="Save" />
-                  <MenuItem mnemonicParsing="false" text="Save as" />
+              <MenuItem fx:id="openButton" mnemonicParsing="false" onAction="#openAction" text="Open" />
+                  <MenuItem fx:id="saveButton" mnemonicParsing="false" onAction="#saveAction" text="Save as" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
@@ -52,10 +51,10 @@
       </ToolBar>
       <ToolBar layoutY="27.0" prefHeight="35.0" prefWidth="293.0">
         <items>
-            <Button disable="true" mnemonicParsing="false" text="Edit" />
-          <Button disable="true" mnemonicParsing="false" prefHeight="25.0" prefWidth="73.0" text="Delete" />
+            <Button fx:id="editButton" mnemonicParsing="false" onAction="#editAction" text="Edit" />
+          <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#deleteAction" prefHeight="25.0" prefWidth="73.0" text="Delete" />
             <Button fx:id="completeButton" disable="true" mnemonicParsing="false" text="Complete" />
-            <Button mnemonicParsing="false" text="Archivate" />
+            <Button fx:id="archivateButton" mnemonicParsing="false" onAction="#archivateAction" text="Archivate" />
         </items>
       </ToolBar>
       <ToolBar layoutX="289.0" layoutY="27.0" nodeOrientation="RIGHT_TO_LEFT" prefHeight="35.0" prefWidth="489.0">

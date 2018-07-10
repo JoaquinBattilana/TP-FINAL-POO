@@ -1,10 +1,11 @@
 package source;
 
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class StringDate implements Comparable<StringDate> {
+public class StringDate implements Comparable<StringDate>,Serializable {
     private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("dd/MM/uuuu");
     private LocalDate date;
 

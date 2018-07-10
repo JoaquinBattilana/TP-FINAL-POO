@@ -1,20 +1,21 @@
 package source;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class TaskHolder {
+public class TaskHolder implements Serializable {
 
     private int currentId=1;
     private Set<Task> set= new TreeSet<>();
     private StringDate defaultDate = null;
 
+    public void add(Task task){
+        set.add(task);
+    }
     public void add(String description){
         Task task;
         if(defaultDate==null)
@@ -28,6 +29,9 @@ public class TaskHolder {
         Task task= new Task(currentId,description, date);
         set.add(task);
         this.currentId+=1;
+    }
+    public void delete(int id){
+        set.remove(findTask(id));
     }
     public boolean complete(int id){
         Task task=findTask(id);
@@ -48,7 +52,7 @@ public class TaskHolder {
     public boolean isEmpty(){
         return set.isEmpty();
     }
-    private Task findTask(int id) throws IllegalArgumentException{
+    public Task findTask(int id) throws IllegalArgumentException{
         for(Task task:set ){
             if(task.getId()==id)
                 return task;
@@ -94,15 +98,8 @@ public class TaskHolder {
         }
     }
     public void save(Path path) throws IOException {
-        String f = path.toString();
-        DataOutputStream out = new DataOutputStream(Files.newOutputStream(path));
-        out.writeInt(this.currentId);
-        for(Task task:set) {
-            out.writeInt(task.getId());
-            out.writeUTF(task.getDescription());
-            out.writeUTF(task.getExpirationDate().toString());
-            out.writeBoolean(task.completed());
-        }
+        ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(path));
+        out.writeObject(this);
         out.close();
     }
     public void load(Path path) throws IOException {
@@ -129,7 +126,9 @@ public class TaskHolder {
     public Set<Task> getSet() {
         return set;
     }
-
+    public void remove(Task task){
+        set.remove(task);
+    }
     public void setSet(Set<Task> set){
         this.set=set;
     }
