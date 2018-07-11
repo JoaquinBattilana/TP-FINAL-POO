@@ -40,17 +40,10 @@ public class TaskHolder implements Serializable {
         refreshTask(task);
         return true;
     }
-
-    public void set_date(String date){
-        //this.defaultDate=new StringDate(date);
-    }
     private void refreshTask(Task task){
         set.remove(task);
         task.complete();
         set.add(task);
-    }
-    public boolean isEmpty(){
-        return set.isEmpty();
     }
     public Task findTask(int id) throws IllegalArgumentException{
         for(Task task:set ){
@@ -59,68 +52,11 @@ public class TaskHolder implements Serializable {
         }
         throw new IllegalArgumentException();
     }
-    public Set<Task> list(){
-        return new TreeSet<>(set);
-    }
-    public Set<Task> listToday(){
-        Set<Task> temp=new TreeSet<>();
-        StringDate today=new StringDate(LocalDate.now());
-        for(Task task:set){
-            if(task.getExpirationDate()!=null && task.getExpirationDate()==today){
-                temp.add(task);
-            }
-        }
-        return temp;
-    }
-    public Set<Task> listOverdue(){
-        Set<Task> temp=new TreeSet<>();
-        StringDate today=new StringDate(LocalDate.now());
-        for(Task task:set){
-            if(task.getExpirationDate()!=null && task.getExpirationDate().compareTo(today)<1){
-                temp.add(task);
-            }
-        }
-        return temp;
-    }
-    public Set<Task> findByText(String text){
-        Set<Task> temp=new TreeSet<>();
-        for(Task task:set){
-            if(task.getDescription().toLowerCase().contains(text.toLowerCase())){
-                temp.add(task);
-            }
-        }
-        return temp;
-    }
     public void ac(){
         for(Task task:set) {
             if (task.completed())
                 set.remove(task);
         }
-    }
-    public void save(Path path) throws IOException {
-        ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(path));
-        out.writeObject(this);
-        out.close();
-    }
-    public void load(Path path) throws IOException {
-        DataInputStream in = new DataInputStream(Files.newInputStream(path));
-        this.currentId=in.readInt();
-        while(in.available()!=0) {
-            int id = in.readInt();
-            String description = in.readUTF();
-            String group = in.readUTF();
-            String expiration_date = in.readUTF();
-            Boolean completed=in.readBoolean();
-            this.addAll(id,description,expiration_date,completed);
-        }
-        in.close();
-    }
-
-    public void addAll(int id,String description,String expiration_date,boolean completed){
-        Task new_task= new Task(currentId,description, new StringDate(expiration_date));
-        if(completed)
-            new_task.complete();
-        set.add(new_task);
     }
 
     public Set<Task> getSet() {
@@ -128,8 +64,5 @@ public class TaskHolder implements Serializable {
     }
     public void remove(Task task){
         set.remove(task);
-    }
-    public void setSet(Set<Task> set){
-        this.set=set;
     }
 }

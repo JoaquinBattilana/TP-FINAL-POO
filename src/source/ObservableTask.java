@@ -3,47 +3,32 @@ package source;
 import javafx.beans.property.*;
 
 public class ObservableTask {
-    StringProperty complete;
-    IntegerProperty id;
-    StringProperty description;
-    StringProperty expirationDate;
     Task task;
     public ObservableTask(Task task){
         this.task=task;
-        if(task.completed())
-            complete = new SimpleStringProperty("completado");
-        else
-            complete = new SimpleStringProperty("pendiente");
-        this.id = new SimpleIntegerProperty(task.getId());
-        this.description = new SimpleStringProperty(task.getDescription());
-        this.expirationDate = new SimpleStringProperty("");
-        if(task.getExpirationDate()!=null)
-            this.expirationDate = new SimpleStringProperty(task.getExpirationDate().toString());
     }
 
     public IntegerProperty getIdProperty(){
-        return id;
+        return new SimpleIntegerProperty(task.getId());
     }
     public StringProperty completedProperty(){
-        return complete;
+        if(task.completed())
+            return new SimpleStringProperty("completed");
+        return new SimpleStringProperty("pending");
     }
     public StringProperty getExpirationDateProperty(){
-        return expirationDate;
-    }
-    public boolean completed(){
-        return task.completed();
-    }
-    public String getDescription(){
-        return task.getDescription();
-    }
-    public StringDate getExpirationDate(){
-        return task.getExpirationDate();
+        if (task.getExpirationDate()==null)
+            return new SimpleStringProperty("");
+        return new SimpleStringProperty(task.getExpirationDate().toString());
     }
     public Integer getId(){
         return task.getId();
     }
     public StringProperty getDescriptionProperty(){
-        return description;
+        return new SimpleStringProperty(task.getDescription());
+    }
+    public StringDate getExpirationDate(){
+        return task.getExpirationDate();
     }
 }
 

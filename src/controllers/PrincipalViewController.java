@@ -1,17 +1,16 @@
 package controllers;
 
+import Popups.EditPopup;
+import Popups.ExceptionPopup;
+import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.util.Pair;
 import source.*;
 import javafx.fxml.FXML;
@@ -19,7 +18,6 @@ import javafx.fxml.Initializable;
 
 
 import java.io.File;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URL;
@@ -27,17 +25,20 @@ import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.Predicate;
 
 
 public class PrincipalViewController implements Initializable {
     private ObservableList<ObservableTask> list;
+    private TaskHolder holder;
+    private Predicate<ObservableTask> predicate=item->true;
 
+    @FXML
+    private ChoiceBox<String> filterChoiceBox;
     @FXML
     private MenuItem saveButton;
     @FXML
-    private MenuItem loadButton;
-
-    private TaskHolder holder;
+    private MenuItem openButton;
     @FXML
     private Button editButton;
     @FXML
@@ -48,6 +49,8 @@ public class PrincipalViewController implements Initializable {
     private DatePicker addDatePicker;
     @FXML
     private Button addButton;
+    @FXML
+    private TextField filterTextField;
     @FXML
     private TextField descriptionBox;
     @FXML
@@ -67,13 +70,63 @@ public class PrincipalViewController implements Initializable {
         this.holder=holder;
     }
 
+    private void setPredicate(Predicate<ObservableTask> predicate){
+        this.predicate=predicate;
+    }
+
     @Override
     public void initialize(URL location, ResourceBundle resources){
         taskTable.setItems(list);
+        filterChoiceBox.setItems(FXCollections.observableArrayList("by description","overdue", "due today"));
+        filterChoiceBox.getSelectionModel().selectFirst();
+        filterChoiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                if(newValue.equals(0))
+                    setPredicate(task->task.getDescriptionProperty().get().toLowerCase().contains(filterTextField.getText().toLowerCase()));
+                else if(newValue.equals(1)){
+                    setPredicate(task->
+                    {
+                        if(task.getExpirationDate()==null)
+                            return false;
+                        return task.getExpirationDate().compareTo(new StringDate(LocalDate.now()))<0;
+                    });
+
+                }
+                else if(newValue.equals(2)){
+                    setPredicate(task->
+                            {
+                                if(task.getExpirationDate()==null)
+                                    return false;
+                                return task.getExpirationDate().equals(new StringDate(LocalDate.now()));
+                            });
+                }
+                refresh();
+            }
+        });
+        filterTextField.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (newValue == null || newValue.isEmpty())
+                    setPredicate(p->true);
+                else
+                    setPredicate(task->task.getDescriptionProperty().get().toLowerCase().contains(newValue));
+                refresh();
+            }
+        });
+
+
         stateColumn.setCellValueFactory(cellData -> cellData.getValue().completedProperty());
         idColumn.setCellValueFactory(cellData -> cellData.getValue().getIdProperty());
         descriptionColumn.setCellValueFactory(cellData -> cellData.getValue().getDescriptionProperty());
         expirationColumn.setCellValueFactory(cellData -> cellData.getValue().getExpirationDateProperty());
+
+        completeButton.disableProperty().bind(Bindings.isEmpty(taskTable.getSelectionModel().getSelectedItems()));
+        editButton.disableProperty().bind(Bindings.isEmpty(taskTable.getSelectionModel().getSelectedItems()));
+        deleteButton.disableProperty().bind(Bindings.isEmpty(taskTable.getSelectionModel().getSelectedItems()));
+        addButton.disableProperty().bind(Bindings.isEmpty(descriptionBox.textProperty()));
+        filterTextField.disableProperty().bind(Bindings.equal(filterChoiceBox.valueProperty(),"overdue").or(Bindings.equal(filterChoiceBox.valueProperty(),"due today")));
+
      }
 
      @FXML
@@ -97,15 +150,16 @@ public class PrincipalViewController implements Initializable {
         for(Task task:holder.getSet()){
             list.add(new ObservableTask(task));
         }
-        taskTable.setItems(list);
+        FilteredList<ObservableTask> filteredList = new FilteredList<>(list);
+        filteredList.setPredicate(predicate);
+        taskTable.setItems(filteredList);
      }
 
      @FXML
      protected void completeAction(){
-        /*
         ObservableTask task=taskTable.getSelectionModel().getSelectedItem();
         holder.complete(task.getId());
-        */
+        refresh();
      }
      @FXML
     protected void archivateAction(){
@@ -119,9 +173,9 @@ public class PrincipalViewController implements Initializable {
          refresh();
      }
     @FXML
-    protected void editAction()throws java.io.IOException{
-        Dialog<Pair<String, LocalDate>> dialog= createPopup();
-        Optional<Pair<String,LocalDate>> pair=dialog.showAndWait();
+    protected void editAction(){
+        EditPopup popup= new EditPopup();
+        Optional<Pair<String,LocalDate>> pair=popup.showAndWait();
         ObservableTask task1=taskTable.getSelectionModel().getSelectedItem();
         Task task2=holder.findTask(task1.getId());
         holder.remove(task2);
@@ -134,60 +188,38 @@ public class PrincipalViewController implements Initializable {
         holder.add(task2);
         refresh();
     }
-
-
-    public Dialog<Pair<String, LocalDate>> createPopup(){
-        // Create the custom dialog.
-        Dialog<Pair<String, LocalDate>> dialog = new Dialog<>();
-        dialog.setTitle("Login Dialog");
-        dialog.setHeaderText("Look, a Custom Login Dialog");
-
-        // Set the button types.
-        ButtonType loginButtonType = new ButtonType("Login", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
-
-        // Create the username and password labels and fields.
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-
-        TextField description = new TextField();
-        description.setPromptText("New Description");
-        DatePicker date = new DatePicker();
-        date.setPromptText("New date");
-
-        grid.add(new Label("Description:"), 0, 0);
-        grid.add(description, 1, 0);
-        grid.add(new Label("Date:"), 0, 1);
-        grid.add(date, 1, 1);
-
-        dialog.getDialogPane().setContent(grid);
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == loginButtonType) {
-                return new Pair<>(description.getText(), date.getValue());
+    public void openAction(){
+        try {
+            FileChooser fileChooser = new FileChooser();
+            Stage stage = new Stage();
+            File file = fileChooser.showOpenDialog(stage);
+            if(file!=null) {
+                ObjectInputStream out = new ObjectInputStream(Files.newInputStream(file.toPath()));
+                this.holder = (TaskHolder) out.readObject();
+                out.close();
             }
-            return null;
-        });
-        return dialog;
-    }
-    public void openAction()throws java.io.IOException,java.lang.ClassNotFoundException{
-        FileChooser fileChooser =new FileChooser();
-        Stage stage=new Stage();
-        File file=fileChooser.showOpenDialog(stage);
-        ObjectInputStream out = new ObjectInputStream(Files.newInputStream(file.toPath()));
-        this.holder=(TaskHolder)out.readObject();
-        out.close();
+        }
+        catch(Exception e){
+            ExceptionPopup alert = new ExceptionPopup(e);
+            alert.showAndWait();
+        }
         refresh();
     }
-    public void saveAction()throws java.io.IOException{
-        FileChooser fileChooser =new FileChooser();
-        Stage stage=new Stage();
-        File file=fileChooser.showSaveDialog(stage);
-        ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(file.toPath()));
-        out.writeObject(holder);
-        out.close();
-
+    public void saveAction(){
+        try {
+            FileChooser fileChooser = new FileChooser();
+            Stage stage = new Stage();
+            File file = fileChooser.showSaveDialog(stage);
+            if(file!=null) {
+                ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(file.toPath()));
+                out.writeObject(holder);
+                out.close();
+            }
+        }
+        catch(Exception e){
+            ExceptionPopup alert = new ExceptionPopup(e);
+            alert.showAndWait();
+        }
     }
 
 

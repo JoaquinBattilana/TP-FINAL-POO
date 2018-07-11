@@ -21,6 +21,8 @@ public class StringDate implements Comparable<StringDate>,Serializable {
             return "today";
         else if(date.equals(LocalDate.now().plusDays(1)))
             return "tomorrow";
+        else if(date.equals(LocalDate.now().minusDays(1)))
+            return "yesterday";
         else
             return date.format(format);
     }
@@ -34,7 +36,7 @@ public class StringDate implements Comparable<StringDate>,Serializable {
     public boolean equals(Object obj) {
         if(this==obj)
             return true;
-        if(!(obj instanceof Task))
+        if(!(obj instanceof StringDate))
             return false;
         StringDate temp=(StringDate) obj;
         return date.equals(temp.date);
