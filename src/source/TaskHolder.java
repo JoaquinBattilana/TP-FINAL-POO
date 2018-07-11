@@ -10,17 +10,13 @@ public class TaskHolder implements Serializable {
 
     private int currentId=1;
     private Set<Task> set= new TreeSet<>();
-    private StringDate defaultDate = null;
 
     public void add(Task task){
         set.add(task);
     }
     public void add(String description){
         Task task;
-        if(defaultDate==null)
-            task = new Task(currentId ,description);
-        else
-            task = new Task(currentId, description, defaultDate);
+        task = new Task(currentId ,description);
         set.add(task);
         this.currentId+=1;
     }
