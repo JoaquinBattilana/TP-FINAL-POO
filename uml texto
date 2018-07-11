@@ -1,0 +1,91 @@
+@startuml
+class EditPopup{
+-Dialog<String,LocalDate> Alert
++Optional<Pair<String,LocalDate>> showAndWait()
+}
+
+class ExceptionPopup{
+-Alert
++Optional<ButtonType> showAndWait()
+}
+
+class PrincipalViewController{
+- ObservableList<ObservableTask> list
+TaskHolder holder
+- Predicate<ObservableTask>
+- MenuItem saveButton;
+- MenuItem openButton;
+- Button editButton;
+- Button deleteButton;
+- Button archivateButton;
+- Button addButton;
+- TextField filterTextField;
+- TextField descriptionBox;
+- TableView<ObservableTask> taskTable;
+- TableColumn <ObservableTask, String> stateColumn;
+- TableColumn <ObservableTask, Number> idColumn;
+- TableColumn <ObservableTask, String> descriptionColumn;
+- TableColumn <ObservableTask, String> expirationColumn;
+- Button completeButton;
+
++ void initModel(TaskHolder holder)
+- void setPredicate(Predicate<ObservableTask> p)
++ void initializable(URL location, ResourceBundle resources )
+# void addAction()
+# void deleteAction()
+# void editAction()
+# void archivateAction()
+# void openAction()
+# void saveAction()
+}
+
+class ObservableTask{
+-Task task
++ ObservableTask(Task task)
++ IntegerProperty getIdProperty()
++ StringProperty getDescriptionProperty()
++ StringProperty getExpirationDateProperty()
++ StringProperty getCompletedProperty()
++ Integer getId()
++ String getExpirationDate()
+}
+
+class Task{
+- int id
+- String description
+- StringDate expirationDate
+- boolean complete
++ Task(int id, String description)
++ Task(int id, String description, StringDate date)
++ void complete()
++ void completed()
++ int compareTo(Task o)
++ boolean equals(Object o)
++ int hashCode()
++ int getId()
++ String getDescription()
++ StringData getExpirationDate()
++ void setExpirationDate(StringDate date)
++ void setDescription(String description)
+}
+
+class TaskHolder{
+- int currentId
+- Set<Task> set
+
++ void add(Task task)
++ void add(String description)
++ void add(String description, StringDate date)
++ void delete(int id)
++ boolean complete
+- void refreshTask(Task task)
++ Task findTask(int id)
++ void ac()
++ Set<Task> getSet() 
++ void remove(Task task)
+}
+
+PrincipalViewController *-- "have a observable list of" ObservableTask
+ObservableTask *-- "have a reference to a" Task
+TaskHolder *-- "have a set of" Task
+@enduml
