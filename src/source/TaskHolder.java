@@ -4,8 +4,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class TaskHolder implements Serializable {
 
@@ -53,10 +52,12 @@ public class TaskHolder implements Serializable {
         throw new IllegalArgumentException();
     }
     public void ac(){
-        for(Task task:set) {
+        List<Task> taskList=new ArrayList<>();
+        for (Task task : set) {
             if (task.completed())
-                set.remove(task);
-        }
+                    taskList.add(task);
+            }
+            set.removeAll(taskList);
     }
 
     public Set<Task> getSet() {

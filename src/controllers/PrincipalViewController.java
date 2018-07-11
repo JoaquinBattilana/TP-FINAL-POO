@@ -131,17 +131,11 @@ public class PrincipalViewController implements Initializable {
 
      @FXML
      protected void addAction(){
-
-        if(descriptionBox.getText()==null || descriptionBox.getText().compareTo("")==0){
-            //alerta
+        if(addDatePicker.getValue()==null) {
+            holder.add(descriptionBox.getText());
         }
         else{
-            if(addDatePicker.getValue()==null) {
-                holder.add(descriptionBox.getText());
-            }
-            else{
-                holder.add(descriptionBox.getText(),new StringDate(addDatePicker.getValue()));
-            }
+            holder.add(descriptionBox.getText(),new StringDate(addDatePicker.getValue()));
         }
          refresh();
     }
@@ -179,7 +173,7 @@ public class PrincipalViewController implements Initializable {
         ObservableTask task1=taskTable.getSelectionModel().getSelectedItem();
         Task task2=holder.findTask(task1.getId());
         holder.remove(task2);
-        pair.ifPresent(usernamePassword -> {
+        pair.ifPresent(pairs -> {
             if(pair.get().getKey()!=null && pair.get().getKey().compareTo("")!=0)
                 task2.setDescription(pair.get().getKey());
             if(pair.get().getValue()!=null)
